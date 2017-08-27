@@ -112,6 +112,10 @@ class ObjectVariant
 public:
     ObjectVariant() = default;
     ~ObjectVariant() = default;
+    ObjectVariant(const ObjectVariant &obj);
+    ObjectVariant(const ObjectVariant &&obj);
+    ObjectVariant& operator=(const ObjectVariant &obj);
+    ObjectVariant& operator=(const ObjectVariant &&obj);
 
 private:
     std::unordered_map<std::string, Variant> m_data;
@@ -121,8 +125,12 @@ class ListVariant
 {
 public:
     ListVariant() = default;
-    ListVariant(std::initializer_list<Variant> list);
     ~ListVariant() = default;
+    ListVariant(const ListVariant &list);
+    ListVariant(const ListVariant &&list);
+    ListVariant& operator=(const ListVariant &list);
+    ListVariant& operator=(const ListVariant &&list);
+    ListVariant(std::initializer_list<Variant> list);
 
 private:
     std::vector<Variant> m_data;

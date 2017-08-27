@@ -14,9 +14,9 @@ Variant::~Variant()
     if (VAR_TYPE_STR == m_type)
         m_data.str.~basic_string<char>();
     else if (VAR_TYPE_LIST == m_type)
-        m_data.list->~ListVariant();
+        delete m_data.list;
     else if (VAR_TYPE_OBJ == m_type)
-        m_data.obj->~ObjectVariant();
+        delete m_data.obj;
 }
 
 Variant::Variant(const Variant &var) : m_type(var.m_type)
@@ -24,8 +24,14 @@ Variant::Variant(const Variant &var) : m_type(var.m_type)
     if(VAR_TYPE_STR == m_type)
         new (&m_data.str) std::string();
     switch (m_type) {
+        case VAR_TYPE_BOOL:
+            m_data.b = var.m_data.b;
+            break;
         case VAR_TYPE_INT:
             m_data.i = var.m_data.i;
+            break;
+        case VAR_TYPE_UINT:
+            m_data.ui = var.m_data.ui;
             break;
         case VAR_TYPE_FLOAT:
             m_data.f = var.m_data.f;
@@ -36,14 +42,25 @@ Variant::Variant(const Variant &var) : m_type(var.m_type)
         case VAR_TYPE_CHAR:
             m_data.ch = var.m_data.ch;
             break;
+        case VAR_TYPE_UCHAR:
+            m_data.uch = var.m_data.uch;
+            break;
         case VAR_TYPE_STR:
             m_data.str = var.m_data.str;
             break;
         case VAR_TYPE_OBJ:
-            m_data.str = var.m_data.obj->copy();
+            m_data.obj = new (std::nothrow) auto(*var.m_data.obj);
+            if (m_data.obj == nullptr) {
+                m_type = VAR_TYPE_INT;
+                m_data.i = 0;
+            }
             break;
         case VAR_TYPE_LIST:
-            m_data.str = var.m_data.str;
+            m_data.list = new (std::nothrow) auto(*var.m_data.list);
+            if (m_data.list == nullptr) {
+                m_type = VAR_TYPE_INT;
+                m_data.i = 0;
+            }
             break;
     }
 }
@@ -53,15 +70,15 @@ Variant& Variant::operator=(const Variant &var)
     if(VAR_TYPE_STR == m_type && m_type != var.m_type)
         m_data.str.~basic_string<char>();
     if(VAR_TYPE_LIST == m_type && m_type != var.m_type)
-        m_data.list->~ListVariant();
+        delete m_data.list;
     if(VAR_TYPE_OBJ == m_type && m_type != var.m_type)
-        m_data.obj->~ObjectVariant();
+        delete m_data.obj;
     if (VAR_TYPE_STR != m_type && VAR_TYPE_STR == var.m_type)
         new (&m_data.str) std::string();
     if (VAR_TYPE_LIST != m_type && VAR_TYPE_LIST == var.m_type)
-        new (&m_data.list) ListVariant();
+        m_data.list = new (std::nothrow) ListVariant;
     if (VAR_TYPE_OBJ != m_type && VAR_TYPE_OBJ == var.m_type)
-        new (&m_data.obj) ObjectVariant();
+        m_data.obj = new (std::nothrow) ObjectVariant;
     m_type = var.m_type;
     switch (m_type) {
         case VAR_TYPE_BOOL:
@@ -89,10 +106,20 @@ Variant& Variant::operator=(const Variant &var)
             m_data.str = var.m_data.str;
             break;
         case VAR_TYPE_LIST:
-            m_data.list = var.m_data.list; // TODO  need fix
+            if (m_data.list != nullptr)
+                *m_data.list = *var.m_data.list;
+            else {
+                m_type = VAR_TYPE_INT;
+                m_data.i = 0;
+            }
             break;
         case VAR_TYPE_OBJ:
-            m_data.obj = var.m_data.obj; // TODO need fix
+            if (m_data.obj != nullptr)
+                *m_data.obj = *var.m_data.obj;
+            else {
+                m_type = VAR_TYPE_INT;
+                m_data.i = 0;
+            }
             break;
     }
     return *this;
@@ -108,7 +135,7 @@ Variant::Variant(const int i) : m_type(VAR_TYPE_INT)
     m_data.i = i;
 }
 
-Variant::Variant(const unsigned int i) : m_type(VAR_TYPE_UINT)
+Variant::Variant(const unsigned int ui) : m_type(VAR_TYPE_UINT)
 {
     m_data.ui = ui;
 }
@@ -701,6 +728,26 @@ const bool Variant::isList() const
 const bool Variant::isObject() const
 {
     return VAR_TYPE_OBJ == m_type;
+}
+
+ObjectVariant::ObjectVariant(const ObjectVariant &obj)
+{
+
+}
+
+ObjectVariant::ObjectVariant(const ObjectVariant &&obj)
+{
+
+}
+
+ObjectVariant& ObjectVariant::operator=(const ObjectVariant &obj)
+{
+    return *this;
+}
+
+ObjectVariant& ObjectVariant::operator=(const ObjectVariant &&obj)
+{
+    return *this;
 }
 
 }
