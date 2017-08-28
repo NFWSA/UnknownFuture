@@ -7,13 +7,13 @@ using namespace SurgeNight;
 
 int main()
 {
-    cout << snBgRed + snFgLggreen << "Error:" << snClear << " This is a test!" << endl;
-    cout << snBgLggreen + snFgLgwhite << "Info:" << snClear << " This is an info message..." << endl;
-    cerr << snBgRed + snFgLggreen << "Error:" << snClear << " This is a test!" << endl;
-    cerr << snBgLggreen + snFgLgwhite << "Info:" << snClear << " This is an info message..." << endl;
+    cout << snBg.Red + snFg.Lggreen << "Error:" << snClear << " This is a test!" << endl;
+    cout << snBg.Lggreen + snFg.Lgwhite << "Info:" << snClear << " This is an info message..." << endl;
+    cerr << snBg.Lgred << "Error:" << snFg.Lgblue << " This is a test!" << endl;
+    cerr << snBg.Lggreen + snFg.Lgwhite << "Info:" << snClear << " This is an info message..." << endl;
     ofstream fout("out.txt", fstream::out);
-    fout << snBgRed + snFgLggreen << "Error:" << snClear << " This is a test!" << endl;
-    fout << snBgLggreen + snFgLgwhite << "Info:" << snClear << " This is an info message..." << endl;
+    fout << snBg.Lgred + snFg.Lggreen << "Error:" << snClear << " This is a test!" << endl;
+    fout << snBg.Lggreen + snFg.Lgwhite << "Info:" << snClear << " This is an info message..." << endl;
     fout.close();
     return 0;
 }

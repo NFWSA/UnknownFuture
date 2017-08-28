@@ -7,7 +7,8 @@ namespace SurgeNight
 {
 
     enum ColorTable {
-        COLOR_BLACK = 0,
+        COLOR_CLEAR = 0,
+        COLOR_BLACK = 1,
         COLOR_BLUE,
         COLOR_GREEN,
         COLOR_SHALLOWGREEN,
@@ -30,31 +31,37 @@ namespace SurgeNight
         unsigned int color;
         const OutputColor operator+(const OutputColor &clr) const;
     };
-
-    static OutputColor snFgBlack = { COLOR_BLACK }, snFgBlue = { COLOR_BLUE },
-                snFgGreen = { COLOR_GREEN }, snFgShgreen = { COLOR_SHALLOWGREEN },
-                snFgRed = { COLOR_RED }, snFgPurple = { COLOR_PURPLE },
-                snFgYellow = { COLOR_YELLOW }, snFgWhite = { COLOR_WHITE },
-                snFgGray = { COLOR_GRAY }, snFgLgblue = { COLOR_LIGHTBLUE },
-                snFgLggreen = { COLOR_LIGHTGREEN }, snFgLgshgreen = { COLOR_LIGHTSHALLOWGREEN },
-                snFgLgred = { COLOR_LIGHTRED }, snFgLgpurple = { COLOR_LIGHTPURPLE },
-                snFgLgyellow = { COLOR_LIGHTYELLOW }, snFgLgwhite = { COLOR_LIGHTWHITE },
-                snFgClear = { COLOR_WHITE },
-
-                snBgBlack = { COLOR_BLACK * 16 }, snBgBlue = { COLOR_BLUE * 16 },
-                snBgGreen = { COLOR_GREEN * 16 }, snBgShgreen = { COLOR_SHALLOWGREEN * 16 },
-                snBgRed = { COLOR_RED * 16 }, snBgPurple = { COLOR_PURPLE * 16 },
-                snBgYellow = { COLOR_YELLOW * 16 }, snBgWhite = { COLOR_WHITE * 16 },
-                snBgGray = { COLOR_GRAY * 16 }, snBgLgblue = { COLOR_LIGHTBLUE * 16 },
-                snBgLggreen = { COLOR_LIGHTGREEN * 16 }, snBgLgshgreen = { COLOR_LIGHTSHALLOWGREEN * 16 },
-                snBgLgred = { COLOR_LIGHTRED * 16 }, snBgLgpurple = { COLOR_LIGHTPURPLE * 16 },
-                snBgLgyellow = { COLOR_LIGHTYELLOW * 16 }, snBgLgwhite = { COLOR_LIGHTWHITE * 16 },
-                snBgClear = { COLOR_BLACK * 16 },
-                snClear = { snFgClear + snBgClear };
+    struct {
+        OutputColor Black = { COLOR_BLACK },          Blue = { COLOR_BLUE },
+                    Green = { COLOR_GREEN },          Shgreen = { COLOR_SHALLOWGREEN },
+                    Red = { COLOR_RED },              Purple = { COLOR_PURPLE },
+                    Yellow = { COLOR_YELLOW },        White = { COLOR_WHITE },
+                    Gray = { COLOR_GRAY },            Lgblue = { COLOR_LIGHTBLUE },
+                    Lggreen = { COLOR_LIGHTGREEN },   Lgshgreen = { COLOR_LIGHTSHALLOWGREEN },
+                    Lgred = { COLOR_LIGHTRED },       Lgpurple = { COLOR_LIGHTPURPLE },
+                    Lgyellow = { COLOR_LIGHTYELLOW }, Lgwhite = { COLOR_LIGHTWHITE },
+                    Clear = { COLOR_WHITE };
+    } snFg;
+    struct {
+        OutputColor Black = { COLOR_BLACK * 17 },          Blue = { COLOR_BLUE * 17 },
+                Green = { COLOR_GREEN * 17 },          Shgreen = { COLOR_SHALLOWGREEN * 17 },
+                Red = { COLOR_RED * 17 },              Purple = { COLOR_PURPLE * 17 },
+                Yellow = { COLOR_YELLOW * 17 },        White = { COLOR_WHITE * 17 },
+                Gray = { COLOR_GRAY * 17 },            Lgblue = { COLOR_LIGHTBLUE * 17 },
+                Lggreen = { COLOR_LIGHTGREEN * 17 },   Lgshgreen = { COLOR_LIGHTSHALLOWGREEN * 17 },
+                Lgred = { COLOR_LIGHTRED * 17 },       Lgpurple = { COLOR_LIGHTPURPLE * 17 },
+                Lgyellow = { COLOR_LIGHTYELLOW * 17 }, Lgwhite = { COLOR_LIGHTWHITE * 17 },
+                Clear = { COLOR_BLACK * 17 };
+    } snBg;
+    static OutputColor snClear = { COLOR_CLEAR };
 
     std::ostream& operator<<(std::ostream &out, const OutputColor &color);
-    const char* getColorCStr(const OutputColor color);
-    const std::string getColorStdStr(const OutputColor color);
-}
+    const bool setConsoleColor(const OutputColor &color);
+    const std::string getANSIColorStr(const OutputColor &color);
+    const unsigned int
+    getWinColorAttr(const OutputColor &color,
+                    const OutputColor &oriColor = OutputColor{
+                        snClear.color + snBg.Clear.color * 16 - 17 + snFg.Clear.color});
+    }
 
 #endif //__SN_COLOR_TABLE_H__

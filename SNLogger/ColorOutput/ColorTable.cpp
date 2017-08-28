@@ -17,54 +17,71 @@ const OutputColor OutputColor::operator+(const OutputColor &clr) const
 
 std::ostream& operator<<(std::ostream &out, const OutputColor &color)
 {
-    unsigned int bg = color.color / 16, fg = color.color % 16;
     int ret = 0;
 #if defined WIN32 || defined WIN64
     if (&out == &std::cout || &out == &std::cerr) {
-        unsigned int rlt = 0;
         HANDLE handle = ::GetStdHandle(&out == &std::cout ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
-        if (bg != 0)
-            rlt += bg * 16;
-        if (fg != 0)
-            rlt += fg;
-        ret = SetConsoleTextAttribute(handle, rlt);
+        //CONSOLE_SCREEN_BUFFER_INFO csbi;
+        //GetConsoleScreenBufferInfo(handle, &csbi);
+        ret = SetConsoleTextAttribute(handle, getWinColorAttr(color));//, OutputColor{ csbi.wAttributes }));
     }
 #endif
     if (ret == 0 && (&out == &std::cout || &out == &std::cerr))
-        out << getColorStdStr(color);
+        out << getANSIColorStr(color);
     return out;
 }
 
-const char* getColorCStr(const OutputColor color)
+const bool setConsoleColor(const OutputColor &color)
 {
-    return getColorStdStr(color).c_str();
+#warning note: Please use ostream& << snOutputColor.
+    return false;
 }
 
-const std::string getColorStdStr(const OutputColor color)
+const std::string getANSIColorStr(const OutputColor &color)
 {
-    unsigned int bg = color.color / 16, fg = color.color % 16;
+    unsigned int bg = color.color / 17, fg = color.color % 17;
     if (bg == 0 && fg == 0) {
         return "\e[0m";
     }
     std::string clr("\e[0;");
     unsigned int tmp = 0;
-    //if (bg != 0) {
-        tmp = 40 + color2Unix[bg % 8];
-        if (bg / 8 == 1)
+    if (bg != 0) {
+        tmp = 40 + color2Unix[(bg - 1) % 8];
+        if ((bg - 1) / 8 == 1)
             clr += "5;";
         clr += std::to_string(tmp);
-    //}
-    if (clr[clr.size() - 1] != ';')
-        clr += ';';
-    //if (fg != 0) {
-        tmp = 30 + color2Unix[fg % 8];
-        if (fg / 8 == 1)
+    }
+    if (fg != 0) {
+        if (clr[clr.size() - 1] != ';')
+            clr += ';';
+        tmp = 30 + color2Unix[(fg - 1) % 8];
+        if ((fg - 1) / 8 == 1)
             clr += "1;";
         clr += std::to_string(tmp);
-    //}
+    }
     clr += 'm';
     return clr;
 }
 
+const unsigned int getWinColorAttr(const OutputColor &color, const OutputColor &oriColor)
+{
+    unsigned int rlt = 0;
+    unsigned int bg = color.color / 17, fg = color.color % 17;
+    unsigned int obg = oriColor.color / 16, ofg = oriColor.color % 16;
+    if (bg == 0 && fg == 0) {
+        rlt = snBg.Clear.color * 16 - 17 + snFg.Clear.color;
+    }
+    else {
+        if (bg != 0)
+            rlt += bg * 16 - 16;
+        else
+            rlt += obg * 16;
+        if (fg != 0)
+            rlt += fg - 1;
+        else
+            rlt += ofg;
+    }
+    return rlt;
+}
 
 }
