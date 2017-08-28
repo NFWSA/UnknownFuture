@@ -1,4 +1,4 @@
-#include "Variant.h"
+#include "SNVariant/Variant.h"
 #include <iostream>
 #include <string>
 

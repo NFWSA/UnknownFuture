@@ -116,6 +116,7 @@ public:
     ObjectVariant(const ObjectVariant &&obj);
     ObjectVariant& operator=(const ObjectVariant &obj);
     ObjectVariant& operator=(const ObjectVariant &&obj);
+    ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list);
 
 private:
     std::unordered_map<std::string, Variant> m_data;

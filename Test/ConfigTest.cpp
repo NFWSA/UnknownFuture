@@ -1,4 +1,4 @@
-#include "Reader/ConfigReader.h"
+#include "SNConfig/Reader/ConfigReader.h"
 #include <string>
 #include <iostream>
 
