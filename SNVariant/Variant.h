@@ -20,13 +20,13 @@ namespace impl
             VAR_TYPE_CHAR,
             VAR_TYPE_UCHAR,
             VAR_TYPE_STR,
-            VAR_TYPE_OBJ,
-            VAR_TYPE_LIST
+            VAR_TYPE_LIST,
+            VAR_TYPE_OBJ
     };
 }
 
-class ObjectVariant;
 class ListVariant;
+class ObjectVariant;
 
 class Variant
 {
@@ -35,15 +35,15 @@ public:
     ~Variant();
     Variant(const Variant &var);
     Variant(const Variant &&var);
-    Variant(const bool b);
-    Variant(const int i);
-    Variant(const unsigned int ui);
-    Variant(const float f);
-    Variant(const double d);
-    Variant(const char ch);
-    Variant(const unsigned char uch);
-    Variant(const std::string &str);
-    Variant(const std::string &&str);
+    explicit Variant(const bool b);
+    explicit Variant(const int i);
+    explicit Variant(const unsigned int ui);
+    explicit Variant(const float f);
+    explicit Variant(const double d);
+    explicit Variant(const char ch);
+    explicit Variant(const unsigned char uch);
+    explicit Variant(const std::string &str);
+    explicit Variant(const std::string &&str);
     Variant(const ListVariant &list);
     Variant(const ListVariant &&list);
     Variant(const ObjectVariant &obj);
@@ -90,9 +90,11 @@ public:
     const bool isList() const { return impl::VAR_TYPE_LIST == m_type; }
     const bool isObject() const { return impl::VAR_TYPE_OBJ== m_type; }
 
+    friend std::ostream& operator<<(std::ostream &out, const Variant &var);
+
 private:
-    friend class ObjectVariant;
     friend class ListVariant;
+    friend class ObjectVariant;
     void clear();
 
     union VariantData {
@@ -104,8 +106,8 @@ private:
         char ch;
         unsigned char uch;
         std::string str;
-        ObjectVariant *obj;
         ListVariant *list;
+        ObjectVariant *obj;
         VariantData()
         {
         };
@@ -120,30 +122,9 @@ private:
 
 namespace impl
 {
-    typedef std::unordered_map<std::string, Variant> ObjVarContainer;
     typedef std::vector<Variant> ListVarContainer;
+    typedef std::unordered_map<std::string, Variant> ObjVarContainer;
 }
-
-class ObjectVariant : public impl::ObjVarContainer
-{
-public:
-    using size_type = impl::ObjVarContainer::size_type;
-    using iterator = impl::ObjVarContainer::iterator;
-    using const_iterator = impl::ObjVarContainer::const_iterator;
-
-    ObjectVariant() = default;
-    ~ObjectVariant() = default;
-    ObjectVariant(const ObjectVariant &obj);
-    ObjectVariant(const ObjectVariant &&obj);
-    ObjectVariant& operator=(const ObjectVariant &obj);
-    ObjectVariant& operator=(const ObjectVariant &&obj);
-    ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list);
-
-    const bool has(const std::string &key) const { return find(key) != end(); }
-
-    void add(const std::string &key, const Variant &value);
-    const iterator erase(const std::string &key);
-};
 
 class ListVariant : public impl::ListVarContainer
 {
@@ -166,10 +147,34 @@ public:
     const iterator erase(const size_type index);
 };
 
+class ObjectVariant : public impl::ObjVarContainer
+{
+public:
+    using size_type = impl::ObjVarContainer::size_type;
+    using iterator = impl::ObjVarContainer::iterator;
+    using const_iterator = impl::ObjVarContainer::const_iterator;
+
+    ObjectVariant() = default;
+    ~ObjectVariant() = default;
+    ObjectVariant(const ObjectVariant &obj);
+    ObjectVariant(const ObjectVariant &&obj);
+    ObjectVariant& operator=(const ObjectVariant &obj);
+    ObjectVariant& operator=(const ObjectVariant &&obj);
+    ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list);
+
+    const bool has(const std::string &key) const { return find(key) != end(); }
+
+    void add(const std::string &key, const Variant &value);
+    const iterator erase(const std::string &key);
+};
+
+std::ostream& operator<<(std::ostream &out, const ListVariant &list);
+std::ostream& operator<<(std::ostream &out, const ObjectVariant &obj);
+
 namespace impl
 {
-    static ObjectVariant nullObj;
     static ListVariant nullList;
+    static ObjectVariant nullObj;
 }
 
 }

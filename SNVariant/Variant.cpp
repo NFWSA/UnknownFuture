@@ -1,5 +1,6 @@
 #include "Variant.h"
 #include <stdexcept>
+#include <ostream>
 
 using namespace SurgeNight::impl;
 
@@ -845,45 +846,31 @@ void Variant::clear()
     m_type = VAR_TYPE_NULL;
 }
 
-ObjectVariant::ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list) : ObjVarContainer(list)
+std::ostream& operator<<(std::ostream &out, const Variant &var)
 {
-
-}
-
-ObjectVariant::ObjectVariant(const ObjectVariant &obj) : ObjVarContainer(obj)
-{
-
-}
-
-ObjectVariant::ObjectVariant(const ObjectVariant &&obj) : ObjVarContainer(std::move(obj))
-{
-
-}
-
-ObjectVariant& ObjectVariant::operator=(const ObjectVariant &obj)
-{
-    this->impl::ObjVarContainer::operator=(obj);
-    return *this;
-}
-
-ObjectVariant& ObjectVariant::operator=(const ObjectVariant &&obj)
-{
-    this->impl::ObjVarContainer::operator=(std::move(obj));
-    return *this;
-}
-
-void ObjectVariant::add(const std::string &key, const Variant &value)
-{
-    insert(std::make_pair(key, value));
-}
-
-const ObjectVariant::iterator ObjectVariant::erase(const std::string &key)
-{
-    auto it = find(key);
-    if (it != end()) {
-        return this->impl::ObjVarContainer::erase(it);
-    }
-    return end();
+    if (VAR_TYPE_NULL == var.m_type)
+        out << "Null Variant";
+    else if (VAR_TYPE_BOOL == var.m_type)
+        out << (var.m_data.b ? "true" : "false");
+    else if (VAR_TYPE_INT == var.m_type)
+        out << var.m_data.i;
+    else if (VAR_TYPE_UINT == var.m_type)
+        out << var.m_data.ui;
+    else if (VAR_TYPE_FLOAT == var.m_type)
+        out << var.m_data.f;
+    else if (VAR_TYPE_DOUBLE == var.m_type)
+        out << var.m_data.d;
+    else if (VAR_TYPE_CHAR == var.m_type)
+        out << var.m_data.ch;
+    else if (VAR_TYPE_UCHAR == var.m_type)
+        out << var.m_data.uch;
+    else if (VAR_TYPE_STR == var.m_type)
+        out << var.m_data.str;
+    else if (VAR_TYPE_LIST == var.m_type)
+        out << *var.m_data.list;
+    else if (VAR_TYPE_OBJ == var.m_type)
+        out << *var.m_data.obj;
+    return out;
 }
 
 ListVariant::ListVariant(std::initializer_list<Variant> list) : ListVarContainer(list)
@@ -925,6 +912,77 @@ const ListVariant::iterator ListVariant::erase(const size_type index)
         return this->impl::ListVarContainer::erase(it);
     }
     return it;
+}
+
+std::ostream& operator<<(std::ostream &out, const ListVariant &list)
+{
+        out << "[ ";
+        bool oneline = true;
+        for (auto &item : list) {
+            if (oneline)
+                oneline = false;
+            else
+                out << ", ";
+            out << item;
+        }
+        out << " ]";
+    return out;
+}
+
+ObjectVariant::ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list) : ObjVarContainer(list)
+{
+
+}
+
+ObjectVariant::ObjectVariant(const ObjectVariant &obj) : ObjVarContainer(obj)
+{
+
+}
+
+ObjectVariant::ObjectVariant(const ObjectVariant &&obj) : ObjVarContainer(std::move(obj))
+{
+
+}
+
+ObjectVariant& ObjectVariant::operator=(const ObjectVariant &obj)
+{
+    this->impl::ObjVarContainer::operator=(obj);
+    return *this;
+}
+
+ObjectVariant& ObjectVariant::operator=(const ObjectVariant &&obj)
+{
+    this->impl::ObjVarContainer::operator=(std::move(obj));
+    return *this;
+}
+
+void ObjectVariant::add(const std::string &key, const Variant &value)
+{
+    insert(std::make_pair(key, value));
+}
+
+const ObjectVariant::iterator ObjectVariant::erase(const std::string &key)
+{
+    auto it = find(key);
+    if (it != end()) {
+        return this->impl::ObjVarContainer::erase(it);
+    }
+    return end();
+}
+
+std::ostream& operator<<(std::ostream &out, const ObjectVariant &obj)
+{
+        out << "{ ";
+        bool oneline = true;
+        for (auto &item : obj) {
+            if (oneline)
+                oneline = false;
+            else
+                out << ", ";
+            out << item.first << ": " << item.second;
+        }
+        out << " }";
+    return out;
 }
 
 }
