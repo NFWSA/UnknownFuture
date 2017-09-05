@@ -1,5 +1,5 @@
-#ifndef __SN_FORMAT_LOGGER_H__
-#define __SN_FORMAT_LOGGER_H__
+#ifndef SN_FORMAT_LOGGER_H
+#define SN_FORMAT_LOGGER_H
 
 #include <string>
 #include <ostream>
@@ -54,4 +54,4 @@ static FormatLogger logger, errLogger(Logger::HANDLE_STDERR);
 
 }
 
-#endif //__SN_FORMAT_LOGGER_H__
+#endif //SN_FORMAT_LOGGER_H

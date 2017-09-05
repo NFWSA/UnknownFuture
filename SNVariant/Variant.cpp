@@ -47,14 +47,14 @@ Variant::Variant(const Variant &var) : m_type(var.m_type)
         case VAR_TYPE_STR:
             m_data.str = var.m_data.str;
             break;
-        case VAR_TYPE_OBJ:
-            m_data.obj = new (std::nothrow) auto(*var.m_data.obj);
-            if (m_data.obj == nullptr)
+        case VAR_TYPE_LIST:
+            m_data.list = new (std::nothrow) ListVariant(*var.m_data.list);
+            if (m_data.list == nullptr)
                 *this = 0;
             break;
-        case VAR_TYPE_LIST:
-            m_data.list = new (std::nothrow) auto(*var.m_data.list);
-            if (m_data.list == nullptr)
+        case VAR_TYPE_OBJ:
+            m_data.obj = new (std::nothrow) ObjectVariant(*var.m_data.obj);
+            if (m_data.obj == nullptr)
                 *this = 0;
             break;
     }
@@ -92,14 +92,14 @@ Variant::Variant(const Variant &&var) : m_type(var.m_type)
         case VAR_TYPE_STR:
             m_data.str = var.m_data.str;
             break;
-        case VAR_TYPE_OBJ:
-            m_data.obj = new (std::nothrow) auto(*var.m_data.obj);
-            if (m_data.obj == nullptr)
-                *this = 0;
-            break;
         case VAR_TYPE_LIST:
             m_data.list = new (std::nothrow) auto(*var.m_data.list);
             if (m_data.list == nullptr)
+                *this = 0;
+            break;
+        case VAR_TYPE_OBJ:
+            m_data.obj = new (std::nothrow) auto(*var.m_data.obj);
+            if (m_data.obj == nullptr)
                 *this = 0;
             break;
     }
@@ -452,7 +452,7 @@ Variant& Variant::operator=(const ObjectVariant &obj)
         m_data.obj = new (std::nothrow) ObjectVariant(obj);
     else
         *m_data.obj = obj;
-    m_type = VAR_TYPE_LIST;
+    m_type = VAR_TYPE_OBJ;
     if (m_data.obj == nullptr)
         *this = 0;
     return *this;
@@ -468,13 +468,13 @@ Variant& Variant::operator=(const ObjectVariant &&obj)
         m_data.obj = new (std::nothrow) ObjectVariant(std::move(obj));
     else
         *m_data.obj = std::move(obj);
-    m_type = VAR_TYPE_LIST;
+    m_type = VAR_TYPE_OBJ;
     if (m_data.obj == nullptr)
         *this = 0;
     return *this;
 }
 
-const bool Variant::asBool() const
+const bool Variant::asBool(const bool defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return m_data.b;
@@ -499,22 +499,22 @@ const bool Variant::asBool() const
     }
     else if (VAR_TYPE_STR == m_type) {
         if (m_data.str.size() < 4)
-            return false;
+            return defaultValue;
         return (m_data.str[0] == 'T' || m_data.str[0] == 't') ||
                (m_data.str[0] == 'R' || m_data.str[0] == 'r') ||
                (m_data.str[0] == 'U' || m_data.str[0] == 'u') ||
                (m_data.str[0] == 'E' || m_data.str[0] == 'e');
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return false;
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return false;
+        return defaultValue;
     }
-    return false;
+    return defaultValue;
 }
 
-const int Variant::asInt() const
+const int Variant::asInt(const int defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return static_cast<int>(m_data.b);
@@ -543,22 +543,22 @@ const int Variant::asInt() const
             return i;
         }
         catch (const std::invalid_argument&) {
-            return 0;
+            return defaultValue;
         }
         catch (const std::out_of_range&) {
-            return 0;
+            return defaultValue;
         }
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return 0;
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return 0;
+        return defaultValue;
     }
-    return 0;
+    return defaultValue;
 }
 
-const unsigned int Variant::asUInt() const
+const unsigned int Variant::asUInt(const unsigned int defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return static_cast<unsigned int>(m_data.b);
@@ -587,22 +587,22 @@ const unsigned int Variant::asUInt() const
             return ui;
         }
         catch (const std::invalid_argument&) {
-            return 0u;
+            return defaultValue;
         }
         catch (const std::out_of_range&) {
-            return 0u;
+            return defaultValue;
         }
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return 0u;
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return 0u;
+        return defaultValue;
     }
-    return 0u;
+    return defaultValue;
 }
 
-const float Variant::asFloat() const
+const float Variant::asFloat(const float defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return static_cast<float>(m_data.b);
@@ -631,22 +631,22 @@ const float Variant::asFloat() const
             return f;
         }
         catch (const std::invalid_argument&) {
-            return 0.0f;
+            return defaultValue;
         }
         catch (const std::out_of_range&) {
-            return 0.0f;
+            return defaultValue;
         }
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return 0.0f;
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return 0.0f;
+        return defaultValue;
     }
-    return 0.0f;
+    return defaultValue;
 }
 
-const double Variant::asDouble() const
+const double Variant::asDouble(const double defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return static_cast<double>(m_data.b);
@@ -675,22 +675,22 @@ const double Variant::asDouble() const
             return d;
         }
         catch (const std::invalid_argument&) {
-            return 0.0;
+            return defaultValue;
         }
         catch (const std::out_of_range&) {
-            return 0.0;
+            return defaultValue;
         }
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return 0.0;
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return 0.0;
+        return defaultValue;
     }
-    return 0.0;
+    return defaultValue;
 }
 
-const char Variant::asChar() const
+const char Variant::asChar(const char defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return static_cast<char>(m_data.b);
@@ -714,18 +714,18 @@ const char Variant::asChar() const
         return static_cast<char>(m_data.uch);
     }
     else if (VAR_TYPE_STR == m_type) {
-        return m_data.str.size() < 1 ? '\0' : m_data.str[0];
+        return m_data.str.size() < 1 ? defaultValue : m_data.str[0];
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return '\0';
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return '\0';
+        return defaultValue;
     }
-    return '\0';
+    return defaultValue;
 }
 
-const unsigned char Variant::asUChar() const
+const unsigned char Variant::asUChar(const unsigned char defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return static_cast<unsigned char>(m_data.b);
@@ -749,18 +749,18 @@ const unsigned char Variant::asUChar() const
         return m_data.uch;
     }
     else if (VAR_TYPE_STR == m_type) {
-        return m_data.str.size() < 1 ? '\0' : m_data.str[0];
+        return m_data.str.empty() ? defaultValue : m_data.str[0];
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return '\0';
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return '\0';
+        return defaultValue;
     }
-    return '\0';
+    return defaultValue;
 }
 
-const std::string Variant::asString() const
+const std::string Variant::asString(const std::string &defaultValue) const
 {
     if (VAR_TYPE_BOOL == m_type) {
         return m_data.b ? "true" : "false";
@@ -778,21 +778,21 @@ const std::string Variant::asString() const
         return std::to_string(m_data.d);
     }
     else if (VAR_TYPE_CHAR == m_type) {
-        return std::to_string(m_data.ch);
+        return std::string(1, m_data.ch);
     }
     else if (VAR_TYPE_UCHAR == m_type) {
-        return std::to_string(m_data.uch);
+        return std::string(1, m_data.uch);
     }
     else if (VAR_TYPE_STR == m_type) {
         return m_data.str;
     }
     else if (VAR_TYPE_LIST == m_type) {
-        return "";
+        return defaultValue;
     }
     else if (VAR_TYPE_OBJ == m_type) {
-        return "";
+        return defaultValue;
     }
-    return "";
+    return defaultValue;
 }
 
 ListVariant& Variant::asList()
@@ -845,131 +845,86 @@ void Variant::clear()
     m_type = VAR_TYPE_NULL;
 }
 
-ObjectVariant::ObjectVariant(const ObjectVariant &obj) : m_data(obj.m_data)
+ObjectVariant::ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list) : ObjVarContainer(list)
 {
 
 }
 
-ObjectVariant::ObjectVariant(const ObjectVariant &&obj) : m_data(obj.m_data)
+ObjectVariant::ObjectVariant(const ObjectVariant &obj) : ObjVarContainer(obj)
+{
+
+}
+
+ObjectVariant::ObjectVariant(const ObjectVariant &&obj) : ObjVarContainer(std::move(obj))
 {
 
 }
 
 ObjectVariant& ObjectVariant::operator=(const ObjectVariant &obj)
 {
-    m_data = obj.m_data;
+    this->impl::ObjVarContainer::operator=(obj);
     return *this;
 }
 
 ObjectVariant& ObjectVariant::operator=(const ObjectVariant &&obj)
 {
-    m_data = obj.m_data;
+    this->impl::ObjVarContainer::operator=(std::move(obj));
     return *this;
-}
-
-ObjectVariant::ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list) : m_data(list)
-{
-
-}
-
-Variant& ObjectVariant::operator[](const std::string &key)
-{
-    if (has(key))
-        return m_data.at(key);
-    return impl::nullVar;
-}
-
-const Variant& ObjectVariant::operator[](const std::string &key) const
-{
-    if (has(key))
-        return m_data.at(key);
-    return impl::nullVar;
 }
 
 void ObjectVariant::add(const std::string &key, const Variant &value)
 {
-    m_data.insert(std::make_pair(key, value));
+    insert(std::make_pair(key, value));
 }
 
 const ObjectVariant::iterator ObjectVariant::erase(const std::string &key)
 {
-    auto it = m_data.find(key);
-    auto end = ++it;
-    if (it != m_data.end()) {
-        return m_data.erase(it, end);
+    auto it = find(key);
+    if (it != end()) {
+        return this->impl::ObjVarContainer::erase(it);
     }
-    return m_data.end();
+    return end();
 }
 
-const ObjectVariant::iterator ObjectVariant::erase(const ObjectVariant::iterator &iter, const size_type number)
-{
-    size_type cnt = m_data.end() - iter;
-    if (cnt > number)
-        cnt = number;
-    return m_data.erase(iter, iter + cnt);
-}
-
-ListVariant::ListVariant(const ListVariant &list) : m_data(list.m_data)
+ListVariant::ListVariant(std::initializer_list<Variant> list) : ListVarContainer(list)
 {
 
 }
 
-ListVariant::ListVariant(const ListVariant &&list) : m_data(list.m_data)
+ListVariant::ListVariant(const ListVariant &list) : ListVarContainer(list)
+{
+
+}
+
+ListVariant::ListVariant(const ListVariant &&list) : ListVarContainer(std::move(list))
 {
 
 }
 
 ListVariant& ListVariant::operator=(const ListVariant &list)
 {
-    m_data = list.m_data;
+    this->impl::ListVarContainer::operator=(list);
     return *this;
 }
 
 ListVariant& ListVariant::operator=(const ListVariant &&list)
 {
-    m_data = list.m_data;
+    this->impl::ListVarContainer::operator=(std::move(list));
     return *this;
-}
-
-ListVariant::ListVariant(std::initializer_list<Variant> list) : m_data(list)
-{
-
-}
-
-Variant& ListVariant::operator[](const size_type index)
-{
-    if (index < m_data.size())
-        return m_data.at(index);
-    return impl::nullVar;
-}
-
-const Variant& ListVariant::operator[](const size_type index) const
-{
-    if (index < m_data.size())
-        return m_data.at(index);
-    return impl::nullVar;
 }
 
 void ListVariant::add(const Variant &value)
 {
-    m_data.push_back(value);
+    push_back(value);
 }
 
 const ListVariant::iterator ListVariant::erase(const size_type index)
 {
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-        return m_data.erase(it, it + 1);
+    auto it = index < size() ? begin() + index : end();
+    if (it != end()) {
+        return this->impl::ListVarContainer::erase(it);
     }
-    return m_data.end();
-}
-
-const ListVariantiterator ListVariant::erase(const ListVariant::iterator &iter, const size_type number)
-{
-    size_type cnt = m_data.end() - iter;
-    if (cnt > number)
-        cnt = number;
-    return m_data.erase(iter, iter + cnt);
+    return it;
 }
 
 }

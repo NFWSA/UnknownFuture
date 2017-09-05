@@ -1,14 +1,11 @@
-#ifndef __SN_CONFIG_READER_H__
-#define __SN_CONFIG_READER_H__
+#ifndef SN_CONFIG_READER_H
+#define SN_CONFIG_READER_H
 
 #include <string>
-#include "../Data/Variant.h"
-#include "../Data/ConfigData.h"
+#include "SNVariant/Variant.h"
 
 namespace SurgeNight
 {
-
-//class ConfigData;
 
 class ConfigReader
 {
@@ -17,11 +14,11 @@ public:
         CONFIG_FORMAT_INI,
         CONFIG_FORMAT_JSON
     };
-    static inline ConfigData getConfigFrom(const std::string &filename, const ConfigFormat format);
+    static inline ObjectVariant getConfigFrom(const std::string &filename, const ConfigFormat format);
     static inline const bool saveConfigTo(const std::string &filename, const ConfigFormat format);
-    static ConfigData getINIConfigFrom(const std::string &filename);
+    static ObjectVariant getINIConfigFrom(const std::string &filename);
     static const bool saveINIConfigTo(const std::string &filename);
-    static ConfigData getJSONConfigFrom(const std::string &filename);
+    static ObjectVariant getJSONConfigFrom(const std::string &filename);
     static const bool saveJSONConfigTo(const std::string &filename);
 
   private:
@@ -32,4 +29,4 @@ public:
 }
 
 #include "ConfigReader.inl"
-#endif //__SN_CONFIG_READER_H__
+#endif //SN_CONFIG_READER_H

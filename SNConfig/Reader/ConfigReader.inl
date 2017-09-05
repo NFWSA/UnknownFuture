@@ -1,7 +1,7 @@
 namespace SurgeNight
 {
 
-ConfigData ConfigReader::getConfigFrom(const std::string &filename, const ConfigReader::ConfigFormat format)
+ObjectVariant ConfigReader::getConfigFrom(const std::string &filename, const ConfigReader::ConfigFormat format)
 {
     switch (format) {
         case CONFIG_FORMAT_INI:

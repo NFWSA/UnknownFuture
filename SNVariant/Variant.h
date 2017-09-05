@@ -1,5 +1,5 @@
-#ifndef __SN_VARIANT_H__
-#define __SN_VARIANT_H__
+#ifndef SN_VARIANT_H
+#define SN_VARIANT_H
 
 #include <string>
 #include <unordered_map>
@@ -65,14 +65,14 @@ public:
     Variant& operator=(const ObjectVariant &obj);
     Variant& operator=(const ObjectVariant &&obj);
 
-    const bool asBool() const;
-    const int asInt() const;
-    const unsigned int asUInt() const;
-    const float asFloat() const;
-    const double asDouble() const;
-    const char asChar() const;
-    const unsigned char asUChar() const;
-    const std::string asString() const;
+    const bool asBool(const bool defaultValue = false) const;
+    const int asInt(const int defaultValue = 0) const;
+    const unsigned int asUInt(const unsigned int defaultValue = 0) const;
+    const float asFloat(const float defaultValue = 0.0f) const;
+    const double asDouble(const double defaultValue = 0.0) const;
+    const char asChar(const char defaultValue = '\0') const;
+    const unsigned char asUChar(const unsigned char defaultValue = '\0') const;
+    const std::string asString(const std::string &defaultValue = "") const;
     ListVariant& asList();
     const ListVariant asList() const;
     ObjectVariant& asObject();
@@ -124,7 +124,7 @@ namespace impl
     typedef std::vector<Variant> ListVarContainer;
 }
 
-class ObjectVariant
+class ObjectVariant : public impl::ObjVarContainer
 {
 public:
     using size_type = impl::ObjVarContainer::size_type;
@@ -139,21 +139,13 @@ public:
     ObjectVariant& operator=(const ObjectVariant &&obj);
     ObjectVariant(std::initializer_list<std::pair<const std::string, Variant>> list);
 
-    const bool has(const std::string &key) const { return m_data.find(key) != m_data.end(); }
-    Variant& operator[](const std::string &key);
-    const Variant& operator[](const std::string &key) const;
+    const bool has(const std::string &key) const { return find(key) != end(); }
 
     void add(const std::string &key, const Variant &value);
     const iterator erase(const std::string &key);
-    const iterator erase(const iterator &iter, const size_type number = 1);
-
-    void clear() { m_data.clear(); }
-
-private:
-    impl::ObjVarContainer m_data;
 };
 
-class ListVariant
+class ListVariant : public impl::ListVarContainer
 {
 public:
     using size_type = impl::ListVarContainer::size_type;
@@ -170,26 +162,16 @@ public:
     ListVariant& operator=(const ListVariant &&list);
     ListVariant(std::initializer_list<Variant> list);
 
-    Variant& operator[](const size_type index);
-    const Variant& operator[](const size_type index) const;
-
     void add(const Variant &value);
     const iterator erase(const size_type index);
-    const iterator erase(const iterator &iter, const size_type number = 1);
-
-    void clear() { m_data.clear(); }
-
-private:
-    impl::ListVarContainer m_data;
 };
 
 namespace impl
 {
-    ObjectVariant nullObj;
-    ListVariant nullList;
-    Variant nullVar;
+    static ObjectVariant nullObj;
+    static ListVariant nullList;
 }
 
 }
 
-#endif //__SN_VARIANT_H__
+#endif //SN_VARIANT_H

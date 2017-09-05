@@ -1,5 +1,5 @@
-#ifndef __SN_LOGGER_H__
-#define __SN_LOGGER_H__
+#ifndef SN_LOGGER_H
+#define SN_LOGGER_H
 
 #include <string>
 #include <functional>
@@ -83,4 +83,4 @@ private:
 
 }
 
-#endif //__SN_LOGGER_H__
+#endif //SN_LOGGER_H

@@ -9,7 +9,12 @@ int main()
 {
     string str;
     cin >> str;
-    ConfigData data = ConfigReader::getConfigFrom(str, ConfigReader::ConfigFormat::CONFIG_FORMAT_INI);
-    cout << data.getString("az") << ' ' << data.getDouble("bs") << ' ' << data.getInt("sd") << endl;
+    ObjectVariant data = ConfigReader::getConfigFrom(str, ConfigReader::ConfigFormat::CONFIG_FORMAT_INI);
+    cout << "az: >" << data["az"].asString() << "<\n"
+         << "bs: >" << data["bs"].asDouble() << "<\n"
+         << "sd: >" << data["sd"].asInt() << "<\n"
+         << "[tag test].fds: >" << data["tag test"].asObject()["fds"].asChar() << "<\n"
+         << "[taged].ooo: >" << data["taged"].asObject()["ooo"].asString() << "<\n"
+         << endl;
     return 0;
 }

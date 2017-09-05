@@ -1,5 +1,5 @@
 #include "ConfigReader.h"
-#include "../Data/ConfigData.h"
+#include "SNVariant/Variant.h"
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -8,7 +8,7 @@
 namespace SurgeNight
 {
 
-using SurgeNight::ConfigData;
+using SurgeNight::ObjectVariant;
 
 std::string& trim(std::string &str)
 {
@@ -30,34 +30,45 @@ std::string& trim(std::string &str)
     return str;
 }
 
-ConfigData ConfigReader::getINIConfigFrom(const std::string &filename)
+ObjectVariant ConfigReader::getINIConfigFrom(const std::string &filename)
 {
     std::ifstream fin(filename);
     if (!fin) {
         fin.close();
-        return ConfigData();
+        return ObjectVariant();
     }
-    ConfigData rlt;
-    std::string line;
+    ObjectVariant rlt;
+    std::string line, nowTag("");
     unsigned int lineNum = 0;
     while (std::getline(fin, line)) {
         ++lineNum;
         trim(line);
         if (!line.empty() && line.at(0) == ';')
+            continue;
+        if (line.size() > 3 && line.at(0) == '[') {
+            if (line.at(line.size() - 1) != ']') {
+                std::cerr << "Error! (" << filename << ":" << lineNum << ") tag is not closed." << std::endl;
                 continue;
-        if (!line.empty() && line.at(0) == '[')
-                continue;
+            }
+            nowTag = line.substr(1, line.size() - 2);
+            if (rlt[nowTag].isNull())
+                rlt[nowTag] = ObjectVariant();
+#if defined DEBUG || _DEBUG
+            std::clog << "Tag:" << nowTag << " & begin " << std::endl;
+#endif
+            continue;
+        }
         auto mid = line.find('=');
         std::string key(line.substr(0, mid));
         trim(key);
         if (mid == std::string::npos) {
-            std::cerr << "Error! (" << key << ") at (" << filename << " " << lineNum << ") is not assigned value." << std::endl;
+            std::cerr << "Error! (" << key << ") at (" << filename << ":" << lineNum << ") is not assigned value." << std::endl;
             continue;
         }
         std::string valueStr(line.substr(mid + 1));
         trim(valueStr);
 #if defined DEBUG || _DEBUG
-        std::cerr << key << " &----& " << valueStr << std::endl;
+        std::clog << "key:" << key << " & value string:>" << valueStr << "<" << std::endl;
 #endif
         Variant value;
         auto it =
@@ -117,9 +128,12 @@ ConfigData ConfigReader::getINIConfigFrom(const std::string &filename)
                 }
             }
         }
-        rlt[key] = value;
+        if (!nowTag.empty())
+            rlt[nowTag].asObject()[key] = value;
+        else
+            rlt[key] = value;
 #if defined DEBUG || _DEBUG
-        std::cerr << '[' << key << "] &" << (value.isInt() ? "int" : (value.isDouble() ? "double" : (value.isString() ? "string" : (value.isUChar() ? "char" : "float"))))  << "& " << valueStr << std::endl;
+        std::clog << '[' << key << "] & type: " << (value.isInt() || value.isUInt() ? "int" : (value.isDouble() ? "double" : (value.isString() ? "string" : (value.isChar() || value.isUChar() ? "char" : "float"))))  << " & value: >" << valueStr << "<" << std::endl;
 #endif
     }
     return rlt;
@@ -130,9 +144,9 @@ const bool ConfigReader::saveINIConfigTo(const std::string &filename)
     return true;
 }
 
-ConfigData ConfigReader::getJSONConfigFrom(const std::string &filename)
+ObjectVariant ConfigReader::getJSONConfigFrom(const std::string &filename)
 {
-    return ConfigData();
+    return ObjectVariant();
 }
 
 const bool ConfigReader::saveJSONConfigTo(const std::string &filename)

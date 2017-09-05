@@ -1,5 +1,5 @@
-#ifndef __SN_COLOR_TABLE_H__
-#define __SN_COLOR_TABLE_H__
+#ifndef SN_COLOR_TABLE_H
+#define SN_COLOR_TABLE_H
 
 #include <ostream>
 
@@ -64,4 +64,4 @@ namespace SurgeNight
                         snClear.color + snBg.Clear.color * 16 - 17 + snFg.Clear.color});
     }
 
-#endif //__SN_COLOR_TABLE_H__
+#endif //SN_COLOR_TABLE_H
