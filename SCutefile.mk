@@ -1,7 +1,7 @@
 # This is a demo for my UnknownFuture repo
 project a b c d
 compile cxx g++
-compile cxxflags -std=c++11 -I. -ggdb
+compile cxxflags -std=c++11 -Isrc -ggdb
 compile c gcc
 #fdf
 a.target VariantTest
