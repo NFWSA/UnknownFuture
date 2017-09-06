@@ -1,7 +1,7 @@
 # This is a demo for my UnknownFuture repo
-project a b c d
+project a b c d e FormatStringTest
 compile cxx g++
-compile cxxflags -std=c++11 -Isrc -ggdb
+compile cxxflags -std=c++11 -Isrc -ggdb -DWIN64
 compile c gcc
 #fdf
 a.target VariantTest
@@ -9,25 +9,40 @@ a.path Build/Test
 b.path Build/Test
 c.path Build/Test
 d.path  Build/Test
+e.path Build/Test
+FormatStringTest.path Build/Test
+
 b.target ColorTableTest
 c.target LoggerTest
 d.target ConfigTest
+e.target StateMachine
+
 a {
 	Test/VariantTest.cpp
-	SNVariant/Variant.cpp
+	src/SNVariant/Variant.cpp
 }
 b{
 	Test/ColorTableTest.cpp
-	SNLogger/ColorOutput/ColorTable.cpp
+	src/SNLogger/ColorOutput/ColorTable.cpp
 }
 
 c {
 	Test/LoggerTest.cpp
-	SNLogger/ColorOutput/ColorTable.cpp
-	SNLogger/Logger.cpp
-	SNLogger/FormatLogger.cpp
+	src/SNLogger/ColorOutput/ColorTable.cpp
+	src/SNLogger/Logger.cpp
+	src/SNLogger/FormatLogger.cpp
 }
 d{Test/ConfigTest.cpp
-	SNConfig/Reader/ConfigReader.cpp
-	SNVariant/Variant.cpp
+	src/SNConfig/Reader/ConfigReader.cpp
+	src/SNVariant/Variant.cpp
+}
+
+e {
+	Test/StateMachineTest.cpp
+	# src/SNStateMachine.
+}
+FormatStringTest {
+	Test/FormatStringTest.cpp
+	src/SNString/FormatString.cpp
+	src/SNVariant/Variant.cpp
 }
