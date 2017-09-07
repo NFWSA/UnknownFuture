@@ -177,6 +177,8 @@ namespace impl
     static ObjectVariant nullObj;
 }
 
+const Variant toVariant(const std::string &str);
+
 }
 
 #endif //SN_VARIANT_H

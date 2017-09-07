@@ -73,64 +73,7 @@ ObjectVariant ConfigReader::getINIConfigFrom(const std::string &filename)
 #if defined DEBUG || _DEBUG
         std::clog << "key:" << key << " & value string:>" << valueStr << "<" << std::endl;
 #endif
-        Variant value;
-        auto it =
-            std::find_if(valueStr.begin(), valueStr.end(), [](char ch) -> bool {
-                    return (ch != '-' &&
-                           ch != '+' && ch != '.') && (ch < '0' || ch > '9');
-            });
-        if (it != valueStr.end()) {
-            // string mode (if size == 1 char mode)
-            if (valueStr.size() == 1)
-                value = valueStr.at(0);
-            else
-                value = valueStr;
-        }
-        else {
-            it = std::find_if(valueStr.begin(), valueStr.end(), [](char ch) -> bool {
-                    return ch == '.';
-            });
-            if (it != valueStr.end()) {
-                // double mode (same as float mode)
-                try {
-                    value = stod(valueStr);
-                }
-                catch (std::invalid_argument) {
-                    // string mode (if size == 1 char mode)
-                    if (valueStr.size() == 1)
-                        value = valueStr.at(0);
-                    else
-                        value = valueStr;
-                }
-                catch (std::out_of_range) {
-                    // string mode (if size == 1 char mode)
-                    if (valueStr.size() == 1)
-                        value = valueStr.at(0);
-                    else
-                        value = valueStr;
-                }
-            }
-            else {
-                // int mode
-                try {
-                    value = stoi(valueStr);
-                }
-                catch (std::invalid_argument) {
-                    // string mode (if size == 1 char mode)
-                    if (valueStr.size() == 1)
-                        value = valueStr.at(0);
-                    else
-                        value = valueStr;
-                }
-                catch (std::out_of_range) {
-                    // string mode (if size == 1 char mode)
-                    if (valueStr.size() == 1)
-                        value = valueStr.at(0);
-                    else
-                        value = valueStr;
-                }
-            }
-        }
+        Variant value(toVariant(valueStr));
         if (!nowTag.empty())
             rlt[nowTag].asObject()[key] = value;
         else

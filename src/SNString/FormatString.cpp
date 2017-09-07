@@ -13,15 +13,15 @@ namespace impl
         ID_BEGIN,
         ID_ALIGN_LEFT, ID_ALIGN_RIGHT,
         ID_FILL_SPACE, ID_FILL_ZERO,
-        ID_WIDTH,
-        ID_PRECISION_BEG, ID_PRECISION,
+        ID_WIDTH, ID_WIDTH_CUSTOM,
+        ID_PRECISION_BEG, ID_PRECISION, ID_PRECISION_CUSTOM,
         ID_TYPE_DECOR, ID_TYPE
     };
     decltype(auto) getFormatMachine()
     {
         static StateMachine<short, char> machine {
             ID_BEGIN, ID_ALIGN_LEFT, ID_ALIGN_RIGHT, ID_FILL_SPACE, ID_FILL_ZERO,
-            ID_WIDTH, ID_PRECISION_BEG, ID_PRECISION, ID_TYPE_DECOR, ID_TYPE
+            ID_WIDTH, ID_WIDTH_CUSTOM, ID_PRECISION_BEG, ID_PRECISION, ID_PRECISION_CUSTOM, ID_TYPE_DECOR, ID_TYPE
         };
         if (!machine.isLock()) {
             std::initializer_list<char> numList = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' },
@@ -32,7 +32,7 @@ namespace impl
             machine.addTransTable(ID_BEGIN, {
                 {'-', ID_ALIGN_LEFT}, { '+', ID_ALIGN_RIGHT },
                 {' ', ID_FILL_SPACE}, { '0', ID_FILL_ZERO },
-                {'.', ID_PRECISION_BEG}
+                {'*', ID_WIDTH_CUSTOM}, {'.', ID_PRECISION_BEG}
             });
             machine.addTransTable(ID_BEGIN, ID_WIDTH, nozeroNumList);
             machine.addTransTable(ID_BEGIN, ID_TYPE_DECOR, typeDecorList);
@@ -40,11 +40,11 @@ namespace impl
 
             machine.addTransTable(ID_ALIGN_LEFT, {
                 {' ', ID_FILL_SPACE}, { '0', ID_FILL_ZERO },
-                {'.', ID_PRECISION_BEG}
+                {'*', ID_WIDTH_CUSTOM}, {'.', ID_PRECISION_BEG}
             });
             machine.addTransTable(ID_ALIGN_RIGHT, {
                 {' ', ID_FILL_SPACE}, { '0', ID_FILL_ZERO },
-                {'.', ID_PRECISION_BEG}
+                {'*', ID_WIDTH_CUSTOM}, {'.', ID_PRECISION_BEG}
             });
             machine.addTransTable(ID_ALIGN_LEFT, ID_WIDTH, nozeroNumList);
             machine.addTransTable(ID_ALIGN_LEFT, ID_TYPE_DECOR, typeDecorList);
@@ -53,14 +53,18 @@ namespace impl
             machine.addTransTable(ID_ALIGN_RIGHT, ID_TYPE_DECOR, typeDecorList);
             machine.addTransTable(ID_ALIGN_RIGHT, ID_TYPE, typeList);
 
-            machine.addTransTable(ID_FILL_SPACE, { {'.', ID_PRECISION_BEG} });
-            machine.addTransTable(ID_FILL_ZERO, { {'.', ID_PRECISION_BEG} });
+            machine.addTransTable(ID_FILL_SPACE, { {'*', ID_WIDTH_CUSTOM}, {'.', ID_PRECISION_BEG} });
+            machine.addTransTable(ID_FILL_ZERO, { {'*', ID_WIDTH_CUSTOM}, {'.', ID_PRECISION_BEG} });
             machine.addTransTable(ID_FILL_SPACE, ID_WIDTH, nozeroNumList);
             machine.addTransTable(ID_FILL_SPACE, ID_TYPE_DECOR, typeDecorList);
             machine.addTransTable(ID_FILL_SPACE, ID_TYPE, typeList);
             machine.addTransTable(ID_FILL_ZERO, ID_WIDTH, nozeroNumList);
             machine.addTransTable(ID_FILL_ZERO, ID_TYPE_DECOR, typeDecorList);
             machine.addTransTable(ID_FILL_ZERO, ID_TYPE, typeList);
+
+            machine.addTransTable(ID_WIDTH_CUSTOM, ID_PRECISION_BEG, {'.'});
+            machine.addTransTable(ID_WIDTH_CUSTOM, ID_TYPE_DECOR, typeDecorList);
+            machine.addTransTable(ID_WIDTH_CUSTOM, ID_TYPE, typeList);
 
             machine.addTransTable(ID_WIDTH, ID_WIDTH, numList);
             machine.addTransTable(ID_WIDTH, ID_PRECISION_BEG, {'.'});
@@ -70,6 +74,10 @@ namespace impl
             machine.addTransTable(ID_PRECISION_BEG, ID_PRECISION, nozeroNumList);
             machine.addTransTable(ID_PRECISION_BEG, ID_TYPE_DECOR, typeDecorList);
             machine.addTransTable(ID_PRECISION_BEG, ID_TYPE, typeList);
+            machine.addTransTable(ID_PRECISION_BEG, ID_PRECISION_CUSTOM, { '*' });
+
+            machine.addTransTable(ID_PRECISION_CUSTOM, ID_TYPE_DECOR, typeDecorList);
+            machine.addTransTable(ID_PRECISION_CUSTOM, ID_TYPE, typeList);
 
             machine.addTransTable(ID_PRECISION, ID_PRECISION, numList);
             machine.addTransTable(ID_PRECISION, ID_TYPE_DECOR, typeDecorList);
@@ -98,7 +106,8 @@ FormatString::FormatString(const std::string &content, const std::vector<Variant
     machine.reset();
     bool formating = false;
     auto arg = args.begin();
-    short wstep = 0;// 1 width 2 precision
+    short wstep = 0; // 1 width 2 precision
+    short precision = 0, width = 0;
     for (auto i = 0u; i < content.size(); ++i) {
         if (!formating) {
             if ('%' != content[i]) {
@@ -109,6 +118,8 @@ FormatString::FormatString(const std::string &content, const std::vector<Variant
             if (i >= content.size())
                 break;
             formating = true;
+            precision = 0;
+            width = 0;
         }
         auto ch = content[i];
         if ('%' == ch) {
@@ -134,46 +145,59 @@ FormatString::FormatString(const std::string &content, const std::vector<Variant
             wstep = 1;
             cached << ch;
         }
+        else if (machine.is(impl::ID_WIDTH_CUSTOM)) {
+            if (arg != args.end()) {
+                width = arg->asInt();
+                ++arg;
+            }
+        }
         else if (machine.is(impl::ID_PRECISION)) {
             if (1 == wstep) {
-                int i = std::stoi(cached.str());
-                out << std::setw(i);
+                width = std::stoi(cached.str());
                 cached.str("");
                 wstep = 0;
             }
             cached << ch;
             wstep = 2;
         }
+        else if (machine.is(impl::ID_PRECISION_CUSTOM)) {
+            if (1 == wstep) {
+                width = std::stoi(cached.str());
+                cached.str("");
+                wstep = 0;
+            }
+            if (arg != args.end()) {
+                precision = arg->asInt();
+                ++arg;
+            }
+        }
         else if (machine.is(impl::ID_TYPE_DECOR)) {
             if (1 == wstep) {
-                int i = std::stoi(cached.str());
-                out << std::setw(i);
+                width = std::stoi(cached.str());
                 cached.str("");
                 wstep = 0;
             }
             else if (2 == wstep) {
-                int i = std::stoi(cached.str());
-                out << std::setprecision(i);
+                precision = std::stoi(cached.str());
                 cached.str("");
                 wstep = 0;
             }
         }
         else if (machine.is(impl::ID_TYPE)) {
             if (1 == wstep) {
-                int i = std::stoi(cached.str());
-                out << std::setw(i);
+                width = std::stoi(cached.str());
                 cached.str("");
                 wstep = 0;
             }
             else if (2 == wstep) {
-                int i = std::stoi(cached.str());
-                out << std::setprecision(i);
+                precision = std::stoi(cached.str());
                 cached.str("");
                 wstep = 0;
             }
             formating = false;
             machine.reset();
             if (arg != args.end()){
+                out << std::setw(width) << std::setprecision(precision);
                 auto fill = out.fill();
                 if (out.left & out.flags())
                     out << std::setfill(' ');
@@ -184,9 +208,9 @@ FormatString::FormatString(const std::string &content, const std::vector<Variant
                 else if ('E' == ch)
                     out << std::scientific << std::uppercase<< arg->asDouble() << std::nouppercase << std::defaultfloat;
                 else if ('d' == ch || 'i' == ch) {
-                    if (out.precision() != 0) {
-                        cached << std::setw(out.precision()) << std::setfill('0') << arg->asInt() << std::setfill(' ');
-                        out << cached.str();
+                    if (precision != 0) {
+                        cached << std::setw(precision) << std::setfill('0') << arg->asInt() << std::setfill(' ');
+                        out << std::setfill(' ') << cached.str();
                         cached.str("");
                     }
                     else
@@ -203,7 +227,7 @@ FormatString::FormatString(const std::string &content, const std::vector<Variant
                 else if ('s' == ch)
                     out << arg->asString();
                 ++arg;
-                out << std::right << std::setfill(' ');
+                out << std::right << std::setfill(' ');// << std::setprecision(6);
             }
         }
     }

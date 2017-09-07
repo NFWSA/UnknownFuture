@@ -1,6 +1,7 @@
 #include "Variant.h"
 #include <stdexcept>
 #include <ostream>
+#include <algorithm>
 
 using namespace SurgeNight::impl;
 
@@ -983,6 +984,68 @@ std::ostream& operator<<(std::ostream &out, const ObjectVariant &obj)
         }
         out << " }";
     return out;
+}
+
+const Variant toVariant(const std::string &str)
+{
+    Variant value;
+    auto it = std::find_if(str.begin(), str.end(),
+    [](char ch) -> bool {
+                return (ch != '-' && ch != '+' && ch != '.') && (ch < '0' || ch > '9');
+    });
+    if (it != str.end()) {
+        // string mode (if size == 1 char mode)
+        if (str.size() == 1)
+            value = str.at(0);
+        else
+            value = str;
+    }
+    else {
+        it = std::find_if(str.begin(), str.end(), [](char ch) -> bool {
+                return ch == '.';
+        });
+        if (it != str.end()) {
+            // double mode (same as float mode)
+            try {
+                value = stod(str);
+            }
+            catch (std::invalid_argument) {
+                // string mode (if size == 1 char mode)
+                if (str.size() == 1)
+                    value = str.at(0);
+                else
+                    value = str;
+            }
+            catch (std::out_of_range) {
+                // string mode (if size == 1 char mode)
+                if (str.size() == 1)
+                    value = str.at(0);
+                else
+                    value = str;
+            }
+        }
+        else {
+            // int mode
+            try {
+                value = stoi(str);
+            }
+            catch (std::invalid_argument) {
+                // string mode (if size == 1 char mode)
+                if (str.size() == 1)
+                    value = str.at(0);
+                else
+                    value = str;
+            }
+            catch (std::out_of_range) {
+                // string mode (if size == 1 char mode)
+                if (str.size() == 1)
+                    value = str.at(0);
+                else
+                    value = str;
+            }
+        }
+    }
+    return value;
 }
 
 }
