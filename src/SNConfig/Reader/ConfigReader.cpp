@@ -12,7 +12,7 @@ using SurgeNight::ObjectVariant;
 
 std::string& trim(std::string &str)
 {
-    for (auto it = str.begin(); it!=str.end(); ) {
+    for (auto it = str.begin(); it != str.end(); ) {
         if (*it == ' ' || *it == '\r' || *it == '\n' || *it == '\t') {
             it = str.erase(it);
             continue;
@@ -43,7 +43,10 @@ ObjectVariant ConfigReader::getINIConfigFrom(const std::string &filename)
     while (std::getline(fin, line)) {
         ++lineNum;
         trim(line);
-        if (!line.empty() && line.at(0) == ';')
+#if defined DEBUG || _DEBUG
+        std::clog << lineNum << " :>" << line << "< " << line.size() << " " << line.empty() << std::endl;
+#endif
+        if (line.empty() || line.at(0) == ';')
             continue;
         if (line.size() > 3 && line.at(0) == '[') {
             if (line.at(line.size() - 1) != ']') {

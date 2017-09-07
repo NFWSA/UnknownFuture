@@ -17,7 +17,7 @@ namespace impl
         ID_PRECISION_BEG, ID_PRECISION,
         ID_TYPE_DECOR, ID_TYPE
     };
-    StateMachine<short, char>& getFormatMachine()
+    decltype(auto) getFormatMachine()
     {
         static StateMachine<short, char> machine {
             ID_BEGIN, ID_ALIGN_LEFT, ID_ALIGN_RIGHT, ID_FILL_SPACE, ID_FILL_ZERO,
@@ -84,9 +84,13 @@ namespace impl
     }
 }
 
-FormatString::FormatString(const std::string &content, std::initializer_list<Variant> args)
+FormatString::FormatString(const std::string &content, std::initializer_list<Variant> args) : FormatString(content, std::vector<Variant>(args))
 {
-    std::cout << content << std::endl;
+
+}
+
+FormatString::FormatString(const std::string &content, const std::vector<Variant> &args)
+{
     m_str.reserve(content.size() * 1.2f);
     std::string tmp;
     std::ostringstream out, cached;
@@ -170,14 +174,36 @@ FormatString::FormatString(const std::string &content, std::initializer_list<Var
             formating = false;
             machine.reset();
             if (arg != args.end()){
+                auto fill = out.fill();
+                if (out.left & out.flags())
+                    out << std::setfill(' ');
                 if ('f' == ch)
-                    out << arg->asFloat();
-                else if ('d' == ch)
-                    out << arg->asInt();
+                    out << std::fixed << arg->asDouble() << std::defaultfloat;
+                else if ('e' == ch)
+                    out << std::scientific << arg->asDouble() << std::defaultfloat;
+                else if ('E' == ch)
+                    out << std::scientific << std::uppercase<< arg->asDouble() << std::nouppercase << std::defaultfloat;
+                else if ('d' == ch || 'i' == ch) {
+                    if (out.precision() != 0) {
+                        cached << std::setw(out.precision()) << std::setfill('0') << arg->asInt() << std::setfill(' ');
+                        out << cached.str();
+                        cached.str("");
+                    }
+                    else
+                        out << arg->asInt();
+                }
+                else if ('o' == ch)
+                    out << std::oct << arg->asInt() << std::dec;
+                else if ('x' == ch)
+                    out << std::hex << arg->asInt() << std::dec;
+                else if ('X' == ch)
+                    out << std::hex << std::uppercase << arg->asInt() << std::dec << std::nouppercase;
+                else if ('c' == ch)
+                    out << arg->asChar();
                 else if ('s' == ch)
                     out << arg->asString();
                 ++arg;
-                out << std::right;
+                out << std::right << std::setfill(' ');
             }
         }
     }
@@ -186,7 +212,7 @@ FormatString::FormatString(const std::string &content, std::initializer_list<Var
 
 std::ostream& operator<<(std::ostream &out, const FormatString &str)
 {
-        return out << str.m_str;
+    return out << str.m_str;
 }
 
 }

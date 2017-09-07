@@ -1,7 +1,7 @@
 # This is a demo for my UnknownFuture repo
 project a b c d e FormatStringTest
 compile cxx g++
-compile cxxflags -std=c++11 -Isrc -ggdb -DWIN64
+compile cxxflags -std=c++1z -Isrc -ggdb -DWIN64
 compile c gcc
 #fdf
 a.target VariantTest
@@ -45,4 +45,5 @@ FormatStringTest {
 	Test/FormatStringTest.cpp
 	src/SNString/FormatString.cpp
 	src/SNVariant/Variant.cpp
+	src/SNConfig/Reader/ConfigReader.cpp
 }
